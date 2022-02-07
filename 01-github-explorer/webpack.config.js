@@ -4,7 +4,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 
 module.exports = {
   mode: isDevelopment ? 'development' : 'production',
-  eval:  isdevelopment ? 'eval-source-map' : 'source-map',
+  devtool:  isDevelopment ? 'eval-source-map' : 'source-map',
   entry: path.resolve(__dirname, "src", "index.jsx"),
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -27,6 +27,11 @@ module.exports = {
         test: /\.jsx$/,
         exclude: /node_modules/,
         use: "babel-loader",
+      },
+      {
+        test: /\.css$/,
+        exclude: /node_modules/,
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
