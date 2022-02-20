@@ -4,16 +4,29 @@ import { createServer, Model } from "miragejs";
 import { App } from "./App";
 
 createServer({
-  models:{
+  models: {
     transaction: Model,
   },
+
+  seeds(server) {
+    server.db.loadData({
+      transactions: [
+        {
+          id: 1,
+          title: "Transaction 1",
+          type: "deposit",
+          category: "dev",
+          amount: 100,
+          createdAt: new Date("2022-02-12 09:00:00"),
+        },
+      ],
+    });
+  },
   routes() {
-
-
     this.namespace = "api";
 
     this.get("/transactions", () => {
-      return this.schema.all('transaction')
+      return this.schema.all("transaction");
     });
     this.post("/transactions", (schema, request) => {
       const data = JSON.parse(request.requestBody);
