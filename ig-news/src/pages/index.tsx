@@ -1,4 +1,5 @@
-import { GetServerSideProps } from "next";
+/* eslint-disable @next/next/no-img-element */
+import { GetStaticProps } from "next";
 
 import Head from "next/head";
 import { stripe } from "../services/stripe";
@@ -27,7 +28,7 @@ export default function Home({ product }: HomeProps) {
             Get acces to all the publications <br />
             <span>for {product.amount} month</span>
           </p>
-          <SubscribeButton priceId = {product.priceId} />
+          <SubscribeButton priceId={product.priceId} />
         </section>
         <img src="/images/avatar.svg" alt="girl coding" />
       </main>
@@ -35,7 +36,7 @@ export default function Home({ product }: HomeProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getStaticProps: GetStaticProps = async () => {
   const price = await stripe.prices.retrieve("price_1KZPB2Ga5xhc8JgQy1zXtPtQ", {
     expand: ["product"],
   });
@@ -50,5 +51,6 @@ export const getServerSideProps: GetServerSideProps = async () => {
     props: {
       product,
     },
+    revalidate: 60 * 60 * 24, // 24 hours
   };
 };
