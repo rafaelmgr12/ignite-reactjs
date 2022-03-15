@@ -17,10 +17,25 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({user, account, profile}): Promise<boolean> {
+    async signIn({ user, account, profile }): Promise<boolean> {
       const { email } = user;
 
-      await fauna.query(q.Create(q.Collection("users"), { data: { email } }));
+      try {
+        await fauna.query(
+          q.If(
+            q.Not(
+              q.Exists(
+                q.Match(q.Index("users_by_email"), q.Casefold(user.email))
+              )
+            ),
+            q.Create(q.Collection("users"), { dat: { email } }),
+            q.Get(q.Match(q.Index("users_by_email"), q.Casefold(user.email)))
+          )
+        );
+      } catch (e) {
+        console.log(e);
+      }
+
       return true;
     },
   },
