@@ -5,11 +5,10 @@ import { stripe } from "../../services/stripe";
 // eslint-disable-next-line import/no-anonymous-default-export
 export default async (request: NextApiRequest, response: NextApiResponse) => {
   if (request.method === "POST") {
-    const session = await getSession({req:request});
-
+    const session = await getSession({ req: request });
     const stripeCustomer = await stripe.customers.create({
-        email: session.user.email,
-    })
+      email: session.user.email,
+    });
 
     const striperCheckoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomer.id,
@@ -19,10 +18,9 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
       mode: "subscription",
       allow_promotion_codes: true,
       success_url: process.env.STRIPE_SUCCESS_URL,
-      cancel_url: process.env.STRIPE_CANCEL_URL,
+      cancel_url: process.env.STRIPE_CANCELLED_URL,
     });
-    return response.status(200).json({sessionID: striperCheckoutSession.id})
-
+    return response.status(200).json({ sessionID: striperCheckoutSession.id });
   } else {
     response.setHeader("Allow", "POST");
     response.status(405).end("Method Not Allowed");
