@@ -20,7 +20,7 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
       success_url: process.env.STRIPE_SUCCESS_URL,
       cancel_url: process.env.STRIPE_CANCELLED_URL,
     });
-    return response.status(200).json({ sessionID: striperCheckoutSession.id });
+    return response.status(200).json({ sessionId: striperCheckoutSession.id });
   } else {
     response.setHeader("Allow", "POST");
     response.status(405).end("Method Not Allowed");
