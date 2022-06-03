@@ -31,11 +31,11 @@ type User = {
 };
 
 export default function UserList() {
-  const { data, isLoading, error } = useQuery("users", async () => {
+  const { data, isLoading, isFetching, error } = useQuery("users", async () => {
     const response = await fetch("http://localhost:3000/api/users");
     const data = await response.json();
 
-    const users = data.users.map((user:User) => {
+    const users = data.users.map((user: User) => {
       return {
         id: user.id,
         name: user.name,
@@ -67,6 +67,9 @@ export default function UserList() {
           <Flex mb="8" justify="space-between" align="center">
             <Heading size="lg" fontWeight="normal">
               Usuários
+              {!isLoading && isFetching && (
+                <Spinner size="sm" color="gray.500" ml="4" />
+              )}
             </Heading>
 
             <Link href="/users/create" passHref>
@@ -103,7 +106,7 @@ export default function UserList() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {data.map((user:User) => {
+                  {data.map((user: User) => {
                     return (
                       <Tr key={user.id}>
                         <Td px={["4", "4", "6"]}>
