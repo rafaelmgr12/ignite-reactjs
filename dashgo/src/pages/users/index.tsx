@@ -17,39 +17,14 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { RiAddLine } from "react-icons/ri";
-import { useQuery } from "react-query";
 
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-};
+import { useUsers } from "../../services/hooks/useUsers";
 
 export default function UserList() {
-  const { data, isLoading, isFetching, error } = useQuery("users", async () => {
-    const response = await fetch("http://localhost:3000/api/users");
-    const data = await response.json();
-
-    const users = data.users.map((user: User) => {
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: new Date(user.createdAt).toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        }),
-      };
-    });
-
-    return users;
-  });
+  const { data, isLoading, isFetching, error } = useUsers();
 
   const isWideVersion = useBreakpointValue({
     base: false,
@@ -106,7 +81,7 @@ export default function UserList() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {data.map((user: User) => {
+                  {data.map((user) => {
                     return (
                       <Tr key={user.id}>
                         <Td px={["4", "4", "6"]}>
