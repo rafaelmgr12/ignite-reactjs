@@ -3,10 +3,14 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup'
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useMutation } from 'react-query'
 
 import { Input } from "../../components/Form/Input";
 import { Header } from "../../components/Header";
 import { Sidebar } from "../../components/Sidebar";
+import { api } from "../../services/api";
+import { queryClient } from "../../services/queryClient";
 
 type CreateUserFormData = {
   name: string;
@@ -25,14 +29,31 @@ const createUserFormSchema = yup.object().shape({
 })
 
 export default function CreateUser() {
-  const { register, handleSubmit, formState, errors } = useForm({
+  const router = useRouter()
+
+  const createUser = useMutation(async (user: CreateUserFormData) => {
+    const response = await api.post('users', {
+      user: {
+        ...user,
+        created_at: new Date(),
+      }
+    })
+
+    return response.data.user;
+  }, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('users')
+    }
+  });
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: yupResolver(createUserFormSchema)
   })
 
   const handleCreateUser: SubmitHandler<CreateUserFormData> = async (values) => {
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await createUser.mutateAsync(values);
 
-    console.log(values);
+    router.push('/users')
   }
 
   return (
@@ -60,14 +81,14 @@ export default function CreateUser() {
                 name="name"
                 label="Nome completo"
                 error={errors.name}
-                ref={register}
+                {...register('name')}
               />
               <Input
                 name="email"
                 type="email"
                 label="E-mail"
                 error={errors.email}
-                ref={register}
+                {...register('email')}
               />
             </SimpleGrid>
 
@@ -77,14 +98,14 @@ export default function CreateUser() {
                 type="password"
                 label="Senha"
                 error={errors.password}
-                ref={register}
+                {...register('password')}
               />
               <Input
                 name="password_confirmation"
                 type="password"
                 label="Confirmação da senha"
                 error={errors.password_confirmation}
-                ref={register}
+                {...register('password_confirmation')}
               />
             </SimpleGrid>
           </VStack>
@@ -97,7 +118,7 @@ export default function CreateUser() {
               <Button
                 type="submit"
                 colorScheme="pink"
-                isLoading={formState.isSubmitting}
+                isLoading={isSubmitting}
               >
                 Salvar
               </Button>
