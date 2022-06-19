@@ -1,50 +1,35 @@
 import NextLink from "next/link";
-import {
-  Box,
-  Button,
-  Checkbox,
-  Flex,
-  Heading,
-  Link,
-  Icon,
-  Spinner,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useBreakpointValue,
-} from "@chakra-ui/react";
+import { Box, Button, Checkbox, Flex, Heading, Icon, Link, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useBreakpointValue } from "@chakra-ui/react";
 import { RiAddLine } from "react-icons/ri";
 
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
-import { useUsers } from "../../services/hooks/useUsers";
+import { getUsers, useUsers } from "../../services/hooks/useUsers";
 import { useState } from "react";
 import { queryClient } from "../../services/queryClient";
 import { api } from "../../services/api";
+import { GetServerSideProps } from "next";
 
-export default function UserList() {
+export default function UserList({ users }) {
   const [page, setPage] = useState(1);
-
-  const { data, isLoading, isFetching, error } = useUsers(page);
+  const { data, isLoading, isFetching, error } = useUsers(page, {
+    initialData: users,
+  })
 
   const isWideVersion = useBreakpointValue({
     base: false,
     lg: true,
-  });
+  })
 
-  async function handlePrefetchUser(userID: string) {
-    await queryClient.prefetchQuery(["users", userID], async () => {
-      const response = await api.get(`users/${userID}`);
+  async function handlePrefetchUser(userId: string) {
+    await queryClient.prefetchQuery(['user', userId], async () => {
+      const response = await api.get(`users/${userId}`)
 
       return response.data;
-    },{ 
-      staleTime: 1000 * 60 * 10 // 10 minutes
-    });
+    }, {
+      staleTime: 1000 * 60 * 10, // 10 minutes
+    })
   }
 
   return (
@@ -58,9 +43,8 @@ export default function UserList() {
           <Flex mb="8" justify="space-between" align="center">
             <Heading size="lg" fontWeight="normal">
               Usuários
-              {!isLoading && isFetching && (
-                <Spinner size="sm" color="gray.500" ml="4" />
-              )}
+
+              { !isLoading && isFetching && <Spinner size="sm" color="gray.500" ml="4" /> }
             </Heading>
 
             <NextLink href="/users/create" passHref>
@@ -76,7 +60,7 @@ export default function UserList() {
             </NextLink>
           </Flex>
 
-          {isLoading ? (
+          { isLoading ? (
             <Flex justify="center">
               <Spinner />
             </Flex>
@@ -93,11 +77,11 @@ export default function UserList() {
                       <Checkbox colorScheme="pink" />
                     </Th>
                     <Th>Usuário</Th>
-                    {isWideVersion && <Th>Data de cadastro</Th>}
+                    { isWideVersion && <Th>Data de cadastro</Th> }
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {data.users.map((user) => {
+                  {data.users.map(user => {
                     return (
                       <Tr key={user.id}>
                         <Td px={["4", "4", "6"]}>
@@ -105,20 +89,15 @@ export default function UserList() {
                         </Td>
                         <Td>
                           <Box>
-                            <Link
-                              color="purple.400"
-                              onMouseEnter={() => handlePrefetchUser(user.id)}
-                            >
+                            <Link color="purple.400" onMouseEnter={() => handlePrefetchUser(user.id)}>
                               <Text fontWeight="bold">{user.name}</Text>
                             </Link>
-                            <Text fontSize="sm" color="gray.300">
-                              {user.email}
-                            </Text>
+                            <Text fontSize="sm" color="gray.300">{user.email}</Text>
                           </Box>
                         </Td>
-                        {isWideVersion && <Td>{user.createdAt}</Td>}
+                        { isWideVersion && <Td>{user.createdAt}</Td> }
                       </Tr>
-                    );
+                    )
                   })}
                 </Tbody>
               </Table>
@@ -134,4 +113,14 @@ export default function UserList() {
       </Flex>
     </Box>
   );
+}
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const { users, totalCount } = await getUsers(1)
+
+  return {
+    props: {
+      users,
+    }
+  }
 }
